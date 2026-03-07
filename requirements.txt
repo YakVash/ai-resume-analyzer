@@ -1,0 +1,4 @@
+flask
+pdfminer.six
+spacy
+scikit-learn
