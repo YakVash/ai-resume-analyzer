@@ -1,8 +1,6 @@
-import spacy
+import re
 
-nlp = spacy.load("en_core_web_sm")
-
-skills_db = [
+SKILLS_DB = [
     "python",
     "java",
     "c++",
@@ -18,12 +16,12 @@ skills_db = [
 ]
 
 def extract_skills(text):
-
-    doc = nlp(text.lower())
+    normalized_text = text.lower()
     found_skills = []
 
-    for token in doc:
-        if token.text in skills_db:
-            found_skills.append(token.text)
+    for skill in SKILLS_DB:
+        pattern = r"(?<![\w+#])" + re.escape(skill) + r"(?![\w+#])"
+        if re.search(pattern, normalized_text):
+            found_skills.append(skill)
 
-    return list(set(found_skills))
+    return sorted(found_skills)
