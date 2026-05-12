@@ -1,36 +1,222 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>AI Resume Analyzer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #1d2733;
+            --muted: #667085;
+            --line: #d7dde5;
+            --panel: #ffffff;
+            --page: #f4f7fb;
+            --accent: #0f766e;
+            --accent-dark: #0b5f59;
+            --danger: #b42318;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--page);
+            color: var(--ink);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        main {
+            width: min(920px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 48px 0;
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin: 0;
+        }
+
+        header {
+            margin-bottom: 28px;
+        }
+
+        header p {
+            max-width: 640px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        form,
+        .result {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        label {
+            display: block;
+            margin: 0 0 8px;
+            font-weight: 700;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            color: var(--ink);
+            font: inherit;
+        }
+
+        input {
+            padding: 10px;
+            background: #ffffff;
+        }
+
+        textarea {
+            min-height: 180px;
+            padding: 12px;
+            resize: vertical;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 6px;
+            background: var(--accent);
+            color: #ffffff;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            padding: 12px 18px;
+        }
+
+        button:hover {
+            background: var(--accent-dark);
+        }
+
+        .messages {
+            margin: 0 0 18px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .messages li {
+            border: 1px solid #f3b6b0;
+            border-radius: 6px;
+            background: #fff3f1;
+            color: var(--danger);
+            padding: 10px 12px;
+        }
+
+        .result {
+            margin-top: 24px;
+        }
+
+        .score {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 4px;
+            margin: 14px 0 22px;
+            color: var(--accent-dark);
+            font-size: 44px;
+            font-weight: 800;
+        }
+
+        .score span {
+            font-size: 18px;
+        }
+
+        .pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0 22px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pill-list li {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: #f8fafc;
+            padding: 7px 10px;
+        }
+
+        .empty {
+            color: var(--muted);
+        }
+    </style>
 </head>
 
 <body>
+<main>
+    <header>
+        <h1>AI Resume Analyzer</h1>
+        <p>Upload a PDF resume and compare it with a job description to see the skill match and the gaps to work on.</p>
+    </header>
 
-<h2>Upload Resume</h2>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
 
-<form method="POST" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data">
+        <div class="field">
+            <label for="resume">Resume PDF</label>
+            <input id="resume" type="file" name="resume" accept=".pdf" required>
+        </div>
 
-<input type="file" name="resume" required>
-<br><br>
+        <div class="field">
+            <label for="jobdesc">Job Description</label>
+            <textarea id="jobdesc" name="jobdesc" placeholder="Paste the job description here" required></textarea>
+        </div>
 
-<textarea name="jobdesc" placeholder="Paste Job Description"></textarea>
-<br><br>
+        <button type="submit">Analyze Resume</button>
+    </form>
 
-<button type="submit">Analyze</button>
+    {% if result %}
+        <section class="result">
+            <h2>Match Score</h2>
+            <div class="score">{{ result.score }}<span>%</span></div>
 
-</form>
+            <h3>Skills Found</h3>
+            {% if result.skills %}
+                <ul class="pill-list">
+                    {% for skill in result.skills %}
+                        <li>{{ skill }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty">No known skills were found in this resume.</p>
+            {% endif %}
 
-{% if result %}
-
-<h3>Match Score: {{result.score}}%</h3>
-
-<h3>Skills Found:</h3>
-{{result.skills}}
-
-<h3>Missing Skills:</h3>
-{{result.missing}}
-
-{% endif %}
-
+            <h3>Missing Skills</h3>
+            {% if result.missing %}
+                <ul class="pill-list">
+                    {% for skill in result.missing %}
+                        <li>{{ skill }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty">No missing skills from the detected job requirements.</p>
+            {% endif %}
+        </section>
+    {% endif %}
+</main>
 </body>
 </html>
